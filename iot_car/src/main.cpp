@@ -26,10 +26,7 @@ Ticker tim1;       //这个定时器是为了每5秒上传一次数据
 
 //上云的标志数据
 
-int engine = 0;
-//枚举类型，小车启停及速度
-int move_state = 0;
-//枚举类型，共计十种行动方式
+
 int front_distance = 300;
 //前部超声探测距离0~255
 int back_distance = 300;
@@ -37,10 +34,19 @@ int back_distance = 300;
 int front_warning = 0;
 int back_warning = 0;
 //枚举类型，告警标志（蜂鸣器响）
-int lightSwitch = 0;
-//布尔类型，小车灯光控制
+// int lightSwitch = 0;
+// //布尔类型，小车灯光控制
 int night_mode = 0;
 //布尔类型，夜间自动检测
+
+struct car_mode
+{
+  int engine = 0;
+  //枚举类型，小车启停及速度
+  int move_state = 0;
+  //枚举类型，共计十种行动方式
+}car_mode1;
+
 
 #define LED_out 27
 #define LED_in 14
@@ -80,21 +86,21 @@ int night_mode = 0;
 #define test 12
 //测试pwm端口
 
-#define Motor1_A_ON ledcWrite(0, 250 * engine)
+#define Motor1_A_ON ledcWrite(0, 250 * car_mode1.engine)
 #define Motor1_A_OFF ledcWrite(0, 0)
-#define Motor1_B_ON ledcWrite(1, 250 * engine)
+#define Motor1_B_ON ledcWrite(1, 250 * car_mode1.engine)
 #define Motor1_B_OFF ledcWrite(1, 0)
-#define Motor2_A_ON ledcWrite(2, 250 * engine)
+#define Motor2_A_ON ledcWrite(2, 250 * car_mode1.engine)
 #define Motor2_A_OFF ledcWrite(2, 0)
-#define Motor2_B_ON ledcWrite(3, 250 * engine)
+#define Motor2_B_ON ledcWrite(3, 250 * car_mode1.engine)
 #define Motor2_B_OFF ledcWrite(3, 0)
-#define Motor3_A_ON ledcWrite(4, 250 * engine)
+#define Motor3_A_ON ledcWrite(4, 250 * car_mode1.engine)
 #define Motor3_A_OFF ledcWrite(4, 0)
-#define Motor3_B_ON ledcWrite(5, 250 * engine)
+#define Motor3_B_ON ledcWrite(5, 250 * car_mode1.engine)
 #define Motor3_B_OFF ledcWrite(5, 0)
-#define Motor4_A_ON ledcWrite(6, 250 * engine)
+#define Motor4_A_ON ledcWrite(6, 250 * car_mode1.engine)
 #define Motor4_A_OFF ledcWrite(6, 0)
-#define Motor4_B_ON ledcWrite(7, 250 * engine)
+#define Motor4_B_ON ledcWrite(7, 250 * car_mode1.engine)
 #define Motor4_B_OFF ledcWrite(7, 0)
 
 #define sensor digitalRead(light_sensor)
@@ -170,8 +176,9 @@ void mqttPublish()
     //先拼接出json字符串
     char param[192];
     char jsonBuf[768];
-    sprintf(param, "{\"LightSwitch\":%d,\"Move_state\":%d,\"Engine\":%d,\"Night_mode\":%d,\"Front_distance\":%d,\"Back_distance\":%d,\"Front_Warning\":%d,\"Back_Warning\":%d}", digitalRead(LED_out), move_state, engine, !sensor, front_distance, back_distance, front_warning,back_warning); //我们把要上传的数据写在param里
+    sprintf(param, "{\"Move_state\":%d,\"Engine\":%d,\"Night_mode\":%d,\"Front_distance\":%d,\"Back_distance\":%d,\"Front_Warning\":%d,\"Back_Warning\":%d,\"car_mode\":{\"Engine\":%d,\"Move_state\":%d}}",car_mode1.move_state, car_mode1.engine, !sensor, front_distance, back_distance, front_warning,back_warning,car_mode1.engine,car_mode1.move_state); //我们把要上传的数据写在param里
     postMsgId += 1;
+    //\"LightSwitch\":%d, digitalRead(LED_out), 
     sprintf(jsonBuf, ALINK_BODY_FORMAT, postMsgId, ALINK_METHOD_PROP_POST, param);
     //再从mqtt客户端中发布post消息
     if (mqttClient.publish(ALINK_TOPIC_PROP_POST, jsonBuf))
@@ -226,10 +233,14 @@ void callback(char *topic, byte *payload, unsigned int length)
     Serial.println();
 
     //小车各模块状态更替
-    engine = setAlinkMsgObj["params"]["Engine"];
-    lightSwitch = setAlinkMsgObj["params"]["LightSwitch"];
-    digitalWrite(LED_out,lightSwitch);
-    move_state = setAlinkMsgObj["params"]["Move_state"];
+    // engine = setAlinkMsgObj["params"]["Engine"];
+    // move_state = setAlinkMsgObj["params"]["Move_state"];
+
+    car_mode1.engine = setAlinkMsgObj["params"]["car_mode"]["Engine"];
+    car_mode1.move_state = setAlinkMsgObj["params"]["car_mode"]["Move_state"];
+    // lightSwitch = setAlinkMsgObj["params"]["LightSwitch"];
+    // digitalWrite(LED_out,lightSwitch);
+    
 
     mqttPublish(); //由于将来做应用可能要获取灯的状态,所以在这里发布一下
   }
@@ -262,7 +273,7 @@ void back_distance_measure()//调试完成
 }
 void Car_run()//串口监视器数据调试完毕
 {
-  if (move_state == 0) //停止
+  if (car_mode1.move_state == 0) //停止
   {
     Motor1_A_OFF;
     Motor1_B_OFF;
@@ -273,7 +284,7 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_A_OFF;
     Motor4_B_OFF;
   }
-  else if (move_state == 1) //前进
+  else if (car_mode1.move_state == 1) //前进
   {
     Motor1_A_ON;
     Motor1_B_OFF;
@@ -288,7 +299,7 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_B_OFF;
     //右后正转
   }
-  else if (move_state == 2) //后退
+  else if (car_mode1.move_state == 2) //后退
   {
     Motor1_A_OFF;
     Motor1_B_ON;
@@ -303,7 +314,7 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_B_ON;
     //右后反转
   }
-  else if (move_state == 3) //左移
+  else if (car_mode1.move_state == 3) //左移
   {
     Motor1_A_ON;
     Motor1_B_OFF;
@@ -318,7 +329,7 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_B_OFF;
     //右后正转
   }
-  else if (move_state == 4) //右移
+  else if (car_mode1.move_state == 4) //右移
   {
     Motor1_A_OFF;
     Motor1_B_ON;
@@ -333,7 +344,7 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_B_ON;
     //右后反转
   }
-  else if (move_state == 5) //左旋转
+  else if (car_mode1.move_state == 5) //左旋转
   {
     Motor1_A_OFF;
     Motor1_B_ON;
