@@ -48,10 +48,10 @@ struct car_mode
 }car_mode1;
 
 
-#define LED_out 27
-#define LED_in 14
+//#define LED_out 27
+#define LED_in 5
 //定义LED灯的引脚
-#define light_sensor 13
+#define light_sensor 21
 //定义光电传感器引脚（数字即可）
 #define front_distance_out 32
 //定义前距离传感器引脚1
@@ -63,53 +63,53 @@ struct car_mode
 //定义前距离传感器引脚2
 
 //（pwm输出）
-#define front_BEE 23
-#define back_BEE 22
+//#define front_BEE 23
+//#define back_BEE 22
 //定义报警装置引脚
-#define Motor1_A 15
+#define Motor1_A 16
 //定义电机1的正极引脚
-#define Motor1_B 2
+#define Motor1_B 17
 //定义电机1的负极引脚
-#define Motor2_A 0
+#define Motor2_A 15
 //定义电机2的正极引脚
-#define Motor2_B 4
+#define Motor2_B 14
 //定义电机2的负极引脚
-#define Motor3_A 16
+#define Motor3_A 18
 //定义电机3的正极引脚
-#define Motor3_B 17
+#define Motor3_B 19
 //定义电机3的负极引脚
-#define Motor4_A 5
+#define Motor4_A 13
 //定义电机4的正极引脚
-#define Motor4_B 18
+#define Motor4_B 12
 //定义电机4的负极引脚
 
-#define test 12
+//#define test 22
 //测试pwm端口
 
-#define Motor1_A_ON ledcWrite(0, 250 * car_mode1.engine)
+#define Motor1_A_ON ledcWrite(0, 180 * car_mode1.engine)
 #define Motor1_A_OFF ledcWrite(0, 0)
-#define Motor1_B_ON ledcWrite(1, 250 * car_mode1.engine)
+#define Motor1_B_ON ledcWrite(1, 180 * car_mode1.engine)
 #define Motor1_B_OFF ledcWrite(1, 0)
-#define Motor2_A_ON ledcWrite(2, 250 * car_mode1.engine)
+#define Motor2_A_ON ledcWrite(2, 180 * car_mode1.engine)
 #define Motor2_A_OFF ledcWrite(2, 0)
-#define Motor2_B_ON ledcWrite(3, 250 * car_mode1.engine)
+#define Motor2_B_ON ledcWrite(3, 180 * car_mode1.engine)
 #define Motor2_B_OFF ledcWrite(3, 0)
-#define Motor3_A_ON ledcWrite(4, 250 * car_mode1.engine)
+#define Motor3_A_ON ledcWrite(4, 180 * car_mode1.engine)
 #define Motor3_A_OFF ledcWrite(4, 0)
-#define Motor3_B_ON ledcWrite(5, 250 * car_mode1.engine)
+#define Motor3_B_ON ledcWrite(5, 180 * car_mode1.engine)
 #define Motor3_B_OFF ledcWrite(5, 0)
-#define Motor4_A_ON ledcWrite(6, 250 * car_mode1.engine)
+#define Motor4_A_ON ledcWrite(6, 180 * car_mode1.engine)
 #define Motor4_A_OFF ledcWrite(6, 0)
-#define Motor4_B_ON ledcWrite(7, 250 * car_mode1.engine)
+#define Motor4_B_ON ledcWrite(7, 180 * car_mode1.engine)
 #define Motor4_B_OFF ledcWrite(7, 0)
 
 #define sensor digitalRead(light_sensor)
 #define night_on digitalWrite(LED_in, HIGH)
 #define night_off digitalWrite(LED_in, LOW)
 
-#define front_warning_on ledcWrite(8,250*front_warning)
+#define front_warning_on ledcWrite(8,125*front_warning)
 #define front_warning_off ledcWrite(8,0)
-#define back_warning_on ledcWrite(9,250*back_warning)
+#define back_warning_on ledcWrite(9,125*back_warning)
 #define back_warning_off ledcWrite(9,0)
 
 /*------------------------------------------------------------------------------------------*/
@@ -176,7 +176,7 @@ void mqttPublish()
     //先拼接出json字符串
     char param[192];
     char jsonBuf[768];
-    sprintf(param, "{\"Move_state\":%d,\"Engine\":%d,\"Night_mode\":%d,\"Front_distance\":%d,\"Back_distance\":%d,\"Front_Warning\":%d,\"Back_Warning\":%d,\"car_mode\":{\"Engine\":%d,\"Move_state\":%d}}",car_mode1.move_state, car_mode1.engine, !sensor, front_distance, back_distance, front_warning,back_warning,car_mode1.engine,car_mode1.move_state); //我们把要上传的数据写在param里
+    sprintf(param, "{\"Move_state\":%d,\"Engine\":%d,\"Night_mode\":%d,\"Front_distance\":%d,\"Back_distance\":%d,\"Front_Warning\":%d,\"Back_Warning\":%d,\"car_mode\":{\"Engine\":%d,\"Move_state\":%d}}",car_mode1.move_state, car_mode1.engine, sensor, front_distance, back_distance, front_warning,back_warning,car_mode1.engine,car_mode1.move_state); //我们把要上传的数据写在param里
     postMsgId += 1;
     //\"LightSwitch\":%d, digitalRead(LED_out), 
     sprintf(jsonBuf, ALINK_BODY_FORMAT, postMsgId, ALINK_METHOD_PROP_POST, param);
@@ -252,10 +252,10 @@ void callback(char *topic, byte *payload, unsigned int length)
 void front_distance_measure()//调试完成
 {
   digitalWrite(front_distance_out, LOW);
-  delayMicroseconds(2);
+  delayMicroseconds(5);
 
   digitalWrite(front_distance_out, HIGH);
-  delayMicroseconds(10);
+  delayMicroseconds(20);
   digitalWrite(front_distance_out, LOW);
   
   front_distance= int(pulseIn(front_distance_in, HIGH)*0.034/2.0);
@@ -263,10 +263,10 @@ void front_distance_measure()//调试完成
 void back_distance_measure()//调试完成
 {
   digitalWrite(back_distance_out, LOW);
-  delayMicroseconds(2);
+  delayMicroseconds(5);
 
   digitalWrite(back_distance_out, HIGH);
-  delayMicroseconds(10);
+  delayMicroseconds(20);
   digitalWrite(back_distance_out, LOW);
   
   back_distance= int(pulseIn(back_distance_in, HIGH)*0.034/2.0);
@@ -314,22 +314,7 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_B_ON;
     //右后反转
   }
-  else if (car_mode1.move_state == 3) //左移
-  {
-    Motor1_A_ON;
-    Motor1_B_OFF;
-    //左前正转
-    Motor2_A_OFF;
-    Motor2_B_ON;
-    //右前反转
-    Motor3_A_OFF;
-    Motor3_B_ON;
-    //左后反转
-    Motor4_A_ON;
-    Motor4_B_OFF;
-    //右后正转
-  }
-  else if (car_mode1.move_state == 4) //右移
+  else if (car_mode1.move_state == 3) //右移
   {
     Motor1_A_OFF;
     Motor1_B_ON;
@@ -343,6 +328,21 @@ void Car_run()//串口监视器数据调试完毕
     Motor4_A_OFF;
     Motor4_B_ON;
     //右后反转
+  }
+  else if (car_mode1.move_state == 4) //左移
+  {
+    Motor1_A_ON;
+    Motor1_B_OFF;
+    //左前正转
+    Motor2_A_OFF;
+    Motor2_B_ON;
+    //右前反转
+    Motor3_A_OFF;
+    Motor3_B_ON;
+    //左后反转
+    Motor4_A_ON;
+    Motor4_B_OFF;
+    //右后正转
   }
   else if (car_mode1.move_state == 5) //左旋转
   {
@@ -372,12 +372,12 @@ void Car_run()//串口监视器数据调试完毕
     //左后正转
     Motor4_A_OFF;
     Motor4_B_ON;
-    //右后反转
+    //右后反转  
   }
 }
 void night_check()//调试完成
 {
-  if (sensor == 0) //光线不足
+  if (sensor == 1) //光线不足
   {
     night_on;
     night_mode = 1;
@@ -453,7 +453,7 @@ void setup()
 {
   //通用GPIO端口
   pinMode(LED_in, OUTPUT);
-  pinMode(LED_out,OUTPUT);
+  //pinMode(LED_out,OUTPUT);
   pinMode(light_sensor, INPUT);
   pinMode(front_distance_in, INPUT);
   pinMode(front_distance_out, OUTPUT);
@@ -461,8 +461,8 @@ void setup()
   pinMode(back_distance_out, OUTPUT);
 
   //所有pwm输出端口
-  pinMode(front_BEE, OUTPUT);
-  pinMode(back_BEE, OUTPUT);
+  //pinMode(front_BEE, OUTPUT);
+  //pinMode(back_BEE, OUTPUT);
   pinMode(Motor1_A, OUTPUT);
   pinMode(Motor1_B, OUTPUT);
   pinMode(Motor2_A, OUTPUT);
@@ -483,8 +483,8 @@ void setup()
   ledcSetup(5, 256, 10);
   ledcSetup(6, 256, 10);
   ledcSetup(7, 256, 10);
-  ledcAttachPin(front_BEE, 8);
-  ledcAttachPin(back_BEE, 9);
+  //ledcAttachPin(front_BEE, 8);
+  //ledcAttachPin(back_BEE, 9);cx发v   
   ledcAttachPin(Motor1_A, 0);
   ledcAttachPin(Motor1_B, 1);
   ledcAttachPin(Motor2_A, 2);
@@ -504,7 +504,7 @@ void setup()
     Serial.println("MQTT服务器连接成功!");
   };
   mqttClient.setCallback(callback); //绑定收到set主题时的回调(命令下发回调)
-  tim1.attach(1, mqttPublish);      //启动每5秒发布一次消息
+  tim1.attach(5, mqttPublish);      //启动每5秒发布一次消息
 }
 
 void loop()
